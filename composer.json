@@ -2,7 +2,7 @@
     "name": "webula/beacon-plugin",
     "type": "october-plugin",
     "description": "Beacon plugin for October CMS - read-only status endpoint for the Webula Lighthouse hub",
-    "license": "proprietary",
+    "license": "MIT",
     "authors": [
         {
             "name": "Jan Vince",
