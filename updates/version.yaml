@@ -1,0 +1,8 @@
+v1.0.1: 'First version: signed read-only status endpoint for the Lighthouse hub (October CMS 1 to 4)'
+v2.0.0: 'Signature protocol v2 (host, one-time nonce, signed response), secret from file config only, needs Lighthouse with protocol v2'
+v2.0.1:
+    - 'Minimum secret length, invalid UTF-8 no longer breaks the response, the old backend secret is deleted'
+    - remove_backend_settings.php
+v2.0.2: 'Disk space no longer breaks the server section on hostings that disable the disk functions (PHP 8)'
+v2.1.0: 'Backup section: the Webula.SmallBackup setup (1.x and 2.x) and its newest backup files, never the trigger key'
+v2.2.0: 'Traffic section: the Internal Traffic Statistics setup of October 4 (enabled, timezone, retention, excluded administrator roles)'

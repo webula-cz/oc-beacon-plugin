@@ -1,0 +1,6 @@
+.DS_Store
+/vendor/
+
+# Development notes live in the Webula.Lighthouse repository, never here
+.claude/
+CLAUDE*

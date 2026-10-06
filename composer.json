@@ -1,0 +1,17 @@
+{
+    "name": "webula/beacon-plugin",
+    "type": "october-plugin",
+    "description": "Beacon plugin for October CMS - read-only status endpoint for the Webula Lighthouse hub",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Jan Vince",
+            "email": "jan.vince@webula.cz",
+            "role": "Design and code"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "composer/installers": "^1.0 || ^2.0"
+    }
+}
