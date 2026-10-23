@@ -17,7 +17,7 @@ class StatusCollector
     /**
      * @var string BEACON_VERSION reported to the hub, bump together with version.yaml
      */
-    const BEACON_VERSION = '2.2.0';
+    const BEACON_VERSION = '2.3.0';
 
     /**
      * @var string SCHEDULE_PARAMETER stores the last scheduler heartbeat
@@ -123,7 +123,9 @@ class StatusCollector
     }
 
     /**
-     * collectPhp returns the PHP runtime and the most relevant limits and extensions.
+     * collectPhp returns the PHP runtime and the most relevant limits and extensions. The build date, the distribution
+     * suffix and session.upload_progress tell whether a hosting patched an end-of-life PHP branch (a backport keeps
+     * the version number), e.g. after PHP2Shell (CVE-2026-109618 / CVE-2026-109619).
      */
     protected function collectPhp()
     {
@@ -134,12 +136,66 @@ class StatusCollector
 
         return [
             'version' => PHP_VERSION,
+            'extra_version' => PHP_EXTRA_VERSION,
+            'build_date' => static::getPhpBuildDate(),
             'sapi' => PHP_SAPI,
             'memory_limit' => ini_get('memory_limit'),
             'max_execution_time' => ini_get('max_execution_time'),
             'upload_max_filesize' => ini_get('upload_max_filesize'),
+            'post_max_size' => ini_get('post_max_size'),
+            'session_upload_progress' => static::getIniFlag('session.upload_progress.enabled'),
             'extensions' => $extensions,
         ];
+    }
+
+    /**
+     * getPhpBuildDate returns the build date of the PHP binary ("Build Date" of phpinfo, no constant holds it)
+     * as Y-m-d H:i:s, null when phpinfo is disabled or the date is missing. Only the general block is rendered
+     * and nothing else from it is reported. Failures never break the php section.
+     */
+    protected static function getPhpBuildDate()
+    {
+        $disabled = array_map('trim', explode(',', strtolower((string) ini_get('disable_functions'))));
+        if (!function_exists('phpinfo') || in_array('phpinfo', $disabled, true)) {
+            return null;
+        }
+
+        $level = ob_get_level();
+        try {
+            ob_start();
+            phpinfo(INFO_GENERAL);
+            $info = (string) ob_get_clean();
+        }
+        catch (Throwable $ex) {
+            while (ob_get_level() > $level) {
+                ob_end_clean();
+            }
+
+            return null;
+        }
+
+        // HTML (web SAPI) and text (CLI) output, the day is padded with a space ("Oct  1 2026")
+        if (!preg_match('/Build Date\s*(?:=>)?\s*([A-Za-z]{3}\s+\d{1,2}\s+\d{4}\s+\d{1,2}:\d{2}:\d{2})/', strip_tags($info), $matches)) {
+            return null;
+        }
+
+        $date = \DateTime::createFromFormat('M j Y H:i:s', preg_replace('/\s+/', ' ', $matches[1]));
+
+        return $date ? $date->format('Y-m-d H:i:s') : null;
+    }
+
+    /**
+     * getIniFlag returns a boolean ini setting as true / false, null when the setting does not exist
+     * (e.g. session settings without the session extension).
+     */
+    protected static function getIniFlag($name)
+    {
+        $value = ini_get($name);
+        if ($value === false) {
+            return null;
+        }
+
+        return in_array(strtolower(trim((string) $value)), ['1', 'on', 'yes', 'true'], true);
     }
 
     /**

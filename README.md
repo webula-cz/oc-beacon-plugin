@@ -9,27 +9,22 @@ Supports October CMS 1 to 4 (PHP 7.0+).
 
 ### October CMS 3 / 4 (Composer)
 
-Add the repository and the package to the project `composer.json`. Put the repository **before** the October
-gateway entry:
+The package is on [Packagist](https://packagist.org/packages/webula/beacon-plugin), so no extra repository entry
+is needed. Add it to the project `composer.json`:
 
 ```json
 "require": {
     "webula/beacon-plugin": "^2.0"
-},
-"repositories": [
-    {
-        "type": "vcs",
-        "url": "https://github.com/webula-cz/oc-beacon-plugin"
-    }
-]
+}
 ```
 
-Then run `composer update webula/beacon-plugin` and `php artisan october:migrate`, or use
-Settings → Updates → Check for updates → Force update in the backend.
+Then run `composer update webula/beacon-plugin` (`--no-dev` on production) and `php artisan october:migrate`,
+or use Settings → Updates → Check for updates → Force update in the backend.
 
 ### October CMS 1
 
-Copy the repository contents to `plugins/webula/beacon`.
+Copy the repository contents to `plugins/webula/beacon`. The migration runs on the next backend login
+(with `cms.runMigrationsOnLogin`) or with `php artisan october:up`.
 
 ## Configuration
 
@@ -38,9 +33,10 @@ The shared secret is never stored in the database:
 - October CMS 3 / 4: `BEACON_SECRET=...` in `.env`
 - October CMS 1: `config/webula/beacon/config.php` returning `['secret' => '...']`
 
-Without a valid secret (at least 32 characters) the endpoint always answers 404.
+Without a valid secret (at least 32 characters) the endpoint always answers 404. On sites behind a CDN or a page
+cache, exclude `/beacon/*` from caching.
 
 ## Updating
 
 Composer installs follow the version constraint, so a regular update (backend or `composer update`) picks up
-new tagged releases.
+new tagged releases. Use `--no-dev` on production.
