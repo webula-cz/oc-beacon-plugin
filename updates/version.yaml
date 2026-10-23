@@ -7,3 +7,4 @@ v2.0.2: 'Disk space no longer breaks the server section on hostings that disable
 v2.1.0: 'Backup section: the Webula.SmallBackup setup (1.x and 2.x) and its newest backup files, never the trigger key'
 v2.2.0: 'Traffic section: the Internal Traffic Statistics setup of October 4 (enabled, timezone, retention, excluded administrator roles)'
 v2.3.0: 'PHP section: build date, distribution suffix, post_max_size and session.upload_progress (backported fixes of end-of-life PHP, PHP2Shell)'
+v2.3.1: 'PHP section: change time of the PHP binary as a fallback build date and whether phpinfo is enabled'

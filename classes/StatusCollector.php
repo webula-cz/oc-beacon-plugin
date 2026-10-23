@@ -17,7 +17,7 @@ class StatusCollector
     /**
      * @var string BEACON_VERSION reported to the hub, bump together with version.yaml
      */
-    const BEACON_VERSION = '2.3.0';
+    const BEACON_VERSION = '2.3.1';
 
     /**
      * @var string SCHEDULE_PARAMETER stores the last scheduler heartbeat
@@ -138,6 +138,8 @@ class StatusCollector
             'version' => PHP_VERSION,
             'extra_version' => PHP_EXTRA_VERSION,
             'build_date' => static::getPhpBuildDate(),
+            'binary_date' => static::getPhpBinaryDate(),
+            'phpinfo' => static::isFunctionEnabled('phpinfo'),
             'sapi' => PHP_SAPI,
             'memory_limit' => ini_get('memory_limit'),
             'max_execution_time' => ini_get('max_execution_time'),
@@ -155,8 +157,7 @@ class StatusCollector
      */
     protected static function getPhpBuildDate()
     {
-        $disabled = array_map('trim', explode(',', strtolower((string) ini_get('disable_functions'))));
-        if (!function_exists('phpinfo') || in_array('phpinfo', $disabled, true)) {
+        if (!static::isFunctionEnabled('phpinfo')) {
             return null;
         }
 
@@ -182,6 +183,39 @@ class StatusCollector
         $date = \DateTime::createFromFormat('M j Y H:i:s', preg_replace('/\s+/', ' ', $matches[1]));
 
         return $date ? $date->format('Y-m-d H:i:s') : null;
+    }
+
+    /**
+     * getPhpBinaryDate returns the last change of the PHP binary (PHP_BINARY) as Y-m-d H:i:s, a fallback for hostings
+     * that disable phpinfo: packages (rpm, deb) set the file time to the package build. Null when the binary is unknown
+     * (empty PHP_BINARY under some SAPIs) or not reachable (open_basedir), the warning is suppressed.
+     */
+    protected static function getPhpBinaryDate()
+    {
+        $binary = defined('PHP_BINARY') ? (string) PHP_BINARY : '';
+        if ($binary === '') {
+            return null;
+        }
+
+        try {
+            $time = @filemtime($binary);
+        }
+        catch (Throwable $ex) {
+            return null;
+        }
+
+        return $time ? date('Y-m-d H:i:s', $time) : null;
+    }
+
+    /**
+     * isFunctionEnabled returns false for a missing function or one listed in disable_functions
+     * (before PHP 8 a disabled function still exists).
+     */
+    protected static function isFunctionEnabled($name)
+    {
+        $disabled = array_map('trim', explode(',', strtolower((string) ini_get('disable_functions'))));
+
+        return function_exists($name) && !in_array(strtolower($name), $disabled, true);
     }
 
     /**
